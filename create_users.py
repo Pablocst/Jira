@@ -1,4 +1,4 @@
-# Create Jira users from a CSV file 
+# Create Jira users from a CSV file. 
 import requests
 import sys
 from requests.auth import HTTPBasicAuth
