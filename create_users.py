@@ -1,5 +1,4 @@
-# This code sample uses the 'requests' library:
-# http://docs.python-requests.org
+# Create Jira users from a CSV file 
 import requests
 import sys
 from requests.auth import HTTPBasicAuth
