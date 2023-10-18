@@ -1,4 +1,4 @@
-#This scripts list all inactive workflows schemes
+#This script lists all inactive workflow schemes
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -9,7 +9,7 @@ import environment
 def projectsIDs():
 
 
-    # setting hearders and builiding the GET request
+    # setting headers and building the GET request
     url = "https://"+ environment.domain + ".atlassian.net/rest/api/3/project/search?maxResults=50&startAt=0"
 
     auth = HTTPBasicAuth(environment.username, environment.token)
@@ -53,8 +53,9 @@ def projectsIDs():
     # return the array with all projectids in the Jira instance    
     return(projectids)
       
-        
-def checkInactiveWorkflows(projectids):
+#Get a list of all active workflows
+       
+def checkActiveWorkflows(projectids):
   
   workflowsids = []
   
@@ -85,8 +86,62 @@ def checkInactiveWorkflows(projectids):
     
     for values in result['values']:
       workflowsids.append(values['workflowScheme']['id']) 
+  
+  workflowsids = set(workflowsids)
+  workflowsids = list(workflowsids)  
+  return(workflowsids)
+
+def checkInactiveWorkflows(activeworkflowsids):
+  
+  workflowsids = []
+  url = "https://"+ environment.domain + ".atlassian.net/rest/api/2/workflowscheme?maxResults=50&startAt=0"
+  auth = HTTPBasicAuth(environment.username, environment.token)
     
-  print(workflowsids)
+  # Array that will store all inactive workflows IDs
+  inactiveworkflowsids = []
+  headers = {
+    "Accept": "application/json"
+  }
+  response = requests.request(
+     "GET",
+     url,
+     headers=headers,
+     auth=auth
+  )
+  # converting the GET request response into a dict 
+  result = json.loads(response.text)
+  
+  #populating the array with the workflows IDs
+  for values in result['values']:
+    workflowsids.append(values['id']) 
+  
+  # Checking if the GET response returns a next page, if yes then perform a new call starting from the point mentioned in the nextPage key value
+  while 'nextPage' in result:
+    url = result['nextPage']
+    
+    response = requests.request(
+      "GET",
+      url,
+      headers=headers,
+      auth=auth
+    )
+    
+    result = json.loads(response.text)
+    for values in result['values']:
+      workflowsids.append(values['id'])
+  
+  # Get the difference between all Workflows Schemes and the active ones, this will result in the Inactive ones
+  
+  for ids in workflowsids:
+      if (ids not in activeworkflowsids):
+        inactiveworkflowsids.append(ids)
+    
+    
+        
+  return(inactiveworkflowsids)
+
 
 ids = projectsIDs()
-checkInactiveWorkflows(ids)
+activeworkflowsids = checkActiveWorkflows(ids)
+inactiveworkflowsids = checkInactiveWorkflows(activeworkflowsids)
+print("Inacctive Workflows Schemes", inactiveworkflowsids)
