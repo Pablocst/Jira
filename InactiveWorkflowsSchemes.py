@@ -1,4 +1,4 @@
-#This script lists all inactive workflow schemes.
+#This script lists all inactive workflow schemes
 
 import requests
 from requests.auth import HTTPBasicAuth
